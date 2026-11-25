@@ -24,6 +24,15 @@ def poll_message(cls, mid, data=b""):
     return b'\xb5\x62' + payload + bytes((a, b))
 
 
+# CFG-TP-* TIMEPULSE0 items, mirrored in player/ubx_receiver.cpp. ZED-F9K
+# firmware NAKs CFG-TP5, so the player falls back to this RAM-layer readback.
+TP1_CONFIG_KEYS = (
+    0x30050001, 0x40050002, 0x40050003, 0x40050004, 0x40050005, 0x40050006,
+    0x10050007, 0x10050008, 0x10050009, 0x1005000a, 0x1005000b, 0x2005000c,
+    0x20050023, 0x40050024, 0x40050025, 0x5005002a, 0x5005002b, 0x20050030,
+)
+
+
 def diagnostic_polls(pps=False):
     """Read-only UBX queries: no configuration, reset, or pulse changes."""
     result = bytearray()
@@ -31,7 +40,10 @@ def diagnostic_polls(pps=False):
         result.extend(poll_message(cls, mid))
     if pps:
         # Readbacks only: TIMEPULSE0 configuration and current/future leaps.
+        # CFG-TP5 precedes CFG-VALGET so a NAK arrives before the fallback.
         result.extend(poll_message(0x06, 0x31, b'\x00'))
+        valget = bytes(4) + b"".join(k.to_bytes(4, "little") for k in TP1_CONFIG_KEYS)
+        result.extend(poll_message(0x06, 0x8b, valget))
         result.extend(poll_message(0x01, 0x26))
     return bytes(result)
 
@@ -43,7 +55,7 @@ def main():
     parser.add_argument("--host", default="127.0.0.1")
     parser.add_argument("--port", type=int, default=5019)
     parser.add_argument("--pps", action="store_true",
-                        help="poll next-pulse labels at 10 Hz and TP5/leap readbacks; no configuration writes")
+                        help="poll next-pulse labels at 10 Hz and TP5/VALGET/leap readbacks; no configuration writes")
     args = parser.parse_args()
     running = True
 

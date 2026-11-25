@@ -28,8 +28,9 @@ inline PpsObservation observePps(Radio &radio) {
 }
 inline bool samePulseConfig(const ubx::PulseConfig &a,
                             const ubx::PulseConfig &b) {
-  return a.flags == b.flags && a.period == b.period &&
-      a.locked_period == b.locked_period && a.length == b.length &&
+  return a.from_valget == b.from_valget && a.flags == b.flags &&
+      a.period == b.period && a.locked_period == b.locked_period &&
+      a.length == b.length &&
       a.locked_length == b.locked_length &&
       a.antenna_delay_ns == b.antenna_delay_ns &&
       a.rf_delay_ns == b.rf_delay_ns && a.user_delay_ns == b.user_delay_ns;
@@ -38,7 +39,7 @@ inline void checkPpsMetadata(const ubx::Snapshot &s, double now) {
   const auto &c = s.pulse_config;
   const auto &l = s.leap_info;
   if (!c.present || now < c.received || now - c.received > 10)
-    throw std::runtime_error("fresh CFG-TP5 readback required (bridge --pps)");
+    throw std::runtime_error("fresh CFG-TP5 or CFG-VALGET TIMEPULSE0 readback required (bridge --pps)");
   // Require rising, GNSS locked, TOW aligned, 1 Hz TIMEPULSE0. Do not infer
   // polarity or time grid from an observed integer PPS interval alone.
   const uint32_t required = 1 | 2 | 4 | 32 | 64;
@@ -225,10 +226,17 @@ inline std::string ppsReferenceJson(const PpsReference &r) {
       << ",\"max_label_delivery_s\":" << r.options.max_delivery
       << ",\"max_host_epoch_residual_s\":" << r.maximum_host_residual
       << ",\"max_query_width_s\":" << r.maximum_query_width
+      << ",\"pulse_config_source\":\""
+      << (r.config.from_valget ? "CFG-VALGET" : "CFG-TP5") << '"'
       << ",\"cfg_tp5_flags\":" << r.config.flags
       << ",\"antenna_cable_delay_setting_ns\":" << r.config.antenna_delay_ns
-      << ",\"receiver_rf_delay_setting_ns\":" << r.config.rf_delay_ns
-      << ",\"qerr_valid\":" << ((r.pulse.flags & 16) ? "false" : "true")
+      << ",\"receiver_rf_delay_setting_ns\":";
+  // CFG-VALGET has no RF group delay item; do not report an unread zero.
+  if (r.config.from_valget)
+    out << "null";
+  else
+    out << r.config.rf_delay_ns;
+  out << ",\"qerr_valid\":" << ((r.pulse.flags & 16) ? "false" : "true")
       << ",\"qerr_reported_ps\":" << r.pulse.quantization_error_ps
       << ",\"qerr_applied\":false,\"edge_path_calibrated\":false,\"rf_alignment_verified\":false}";
   return out.str();

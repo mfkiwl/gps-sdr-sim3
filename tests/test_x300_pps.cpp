@@ -140,7 +140,65 @@ void testFailures() {
   bad_label.flags &= ~2u;
   rejects([&] { x300::pulseGps(bad_label, labels.source.decoder.state); }, "invalid TIM-TP");
 }
+void testF9kValget() {
+  Fixture tp5; tp5.acquire();
+  Fixture f9k; f9k.source.f9k = true; f9k.acquire();
+  const auto &s = f9k.source.decoder.state;
+  assert(ubx::supportedIdentity(s.identity) && s.tp5_unsupported);
+  // Same TIMEPULSE0 settings as CFG-TP5, differing only in provenance.
+  auto c = s.pulse_config;
+  assert(c.present && c.from_valget && c.flags == 0x77 &&
+         c.locked_length == 100000 && c.antenna_delay_ns == 50);
+  c.from_valget = false;
+  assert(x300::samePulseConfig(c, tp5.source.decoder.state.pulse_config));
+  const auto ref = f9k.association.reference();
+  assert(ref.gps.week == tp5.association.reference().gps.week &&
+         ref.gps.sec == tp5.association.reference().gps.sec);
+  const auto json = x300::ppsReferenceJson(ref);
+  assert(json.find("\"pulse_config_source\":\"CFG-VALGET\"") != std::string::npos);
+  assert(json.find("\"receiver_rf_delay_setting_ns\":null") != std::string::npos);
+  assert(x300::ppsReferenceJson(tp5.association.reference())
+             .find("\"pulse_config_source\":\"CFG-TP5\"") != std::string::npos);
+  Fixture gps; gps.source.f9k = true; gps.source.utc_grid = false; gps.acquire();
+  assert(gps.association.reference().gps.sec == 439224);
+
+  // F9P: CFG-TP5 stays authoritative; a VALGET reply never overrides it.
+  auto &p = tp5.source.decoder.state;
+  tp5.source.feed(6, 0x8b, tp5.source.valget(1, 50), 104.3);
+  assert(!p.tp5_unsupported && !p.pulse_config.from_valget &&
+         p.pulse_config.locked_length == 100000);
+
+  FakeF9pPps d; d.f9k = true;
+  auto &q = d.decoder.state;
+  d.feed(6, 0x8b, d.valget(), 1); // before the NAK: ignored
+  assert(!q.pulse_config.present && !q.malformed);
+  d.feed(5, 0, {6, 0x31}, 1);
+  d.feed(6, 0x8b, d.valget(1, 10, 0, 7), 1); // default layer, not RAM
+  d.feed(6, 0x8b, d.valget(1, 10, 0, 0, 0x2005000c), 1); // partial
+  assert(q.tp5_unsupported && !q.pulse_config.present && !q.malformed);
+  d.feed(6, 0x8b, d.valget(0, 10), 2); // duty ratio in CFG-TP5 2^-32 units
+  assert(q.pulse_config.present && !(q.pulse_config.flags & 16) &&
+         q.pulse_config.locked_length == 429496729u);
+  auto truncated = d.valget(); truncated.pop_back();
+  d.feed(6, 0x8b, truncated, 3);
+  d.feed(6, 0x8b, d.valget(1, 10, 2), 3); // invalid pulse definition
+  d.feed(6, 0x8b, d.valget(0, 150), 3);   // invalid duty
+  assert(q.malformed == 3 && q.pulse_config.received == 2);
+
+  const std::vector<std::pair<std::string, std::function<void(Fixture &)>>> cases = {
+    {"configuration changed", [](Fixture &f) { f.source.decoder.state.pulse_config.from_valget = false; }},
+    {"configuration changed", [](Fixture &f) { ++f.source.decoder.state.pulse_config.antenna_delay_ns; }},
+    {"1 Hz rising", [](Fixture &f) { f.source.decoder.state.pulse_config.flags &= ~4; }},
+    {"CFG-VALGET TIMEPULSE0 readback", [](Fixture &f) { f.source.decoder.state.pulse_config.received -= 11; }},
+    {"ZED-F9K identity", [](Fixture &f) { f.source.decoder.state.identity = "MOD=NEO-M8T"; }}
+  };
+  for (const auto &c : cases) {
+    Fixture f; f.source.f9k = true; f.acquire(); c.second(f); f.now = 104.4;
+    rejects([&] { f.association.observe(f.source.decoder.state, f.observation()); }, c.first);
+  }
+}
 int main() {
-  testParserAndRollover(); testAmbiguity(); testFailures();
-  std::cout << "PPS epoch association, parser, UTC/leap/week rollover and rejection tests passed\n";
+  testParserAndRollover(); testAmbiguity(); testFailures(); testF9kValget();
+  std::cout << "PPS epoch association, parser, UTC/leap/week rollover, ZED-F9K "
+               "CFG-VALGET and rejection tests passed\n";
 }

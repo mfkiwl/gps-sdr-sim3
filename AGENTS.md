@@ -1,9 +1,5 @@
 # AGENTS.md
 
-Repository guidance for coding agents. Applies to the repository and its subdirectories.
-Reviewed against the latest commit, `feat: x300tx with hardware alignment gps time`
-(2026-09-25), and the documented hardware checks through 2026-09-24.
-
 ## What this repository is (research purpose)
 
 This is a research fork of **GPS-SDR-SIM** (Takuji Ebinuma, MIT License). Upstream generates
@@ -81,7 +77,9 @@ with calibrated end-to-end GPS/RF alignment.
 ### X300 timing contracts
 
 - Without `--gps-pps`, live UBX uses the arrival-time estimate. With `--gps-pps`,
-  the bridge needs `--pps` read-only TIM-TP/CFG-TP5/NAV-TIMELS polling, valid
+  the bridge needs `--pps` read-only TIM-TP/CFG-TP5/NAV-TIMELS polling (CFG-VALGET
+  CFG-TP-* when a ZED-F9K NAKs CFG-TP5; see the dated F9K section in
+  `docs/x300-gps-pps-alignment.md`), valid
   NAV-TIMEGPS, external clock/PPS and an independently justified, unsmeared host
   UTC bound via `--pps-host-utc-bound-sec` in `(0, 0.25]` seconds. The documented
   0.2 s value is an operator-declared bound, not a measured RF calibration.

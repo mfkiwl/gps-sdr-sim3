@@ -129,8 +129,38 @@ Fresh verification in this session:
 - Generated samples, accepted samples and TX send calls were all zero. No RF
   timing or long-run oscillator stability measurement was made.
 
+## ZED-F9K receiver (28 September 2026)
+
+The live receiver was swapped to a ZED-F9K (`MOD=ZED-F9K`, LAP 1.50,
+PROTVER 30.50, unique ID `254de24f5d`, USB `/dev/cu.usbmodem11301`); the
+PRS10C 10 MHz and X300 wiring are otherwise as above. The player now accepts
+ZED-F9P or ZED-F9K identities. This F9K NAKs CFG-TP5, so `--pps` also sends a
+read-only RAM-layer CFG-VALGET of the CFG-TP-* TIMEPULSE0 items. The player
+uses that readback only after a CFG-TP5 NAK; F9P behavior is unchanged. The
+same 1 Hz, rising, GNSS-locked, TOW-aligned, zero-user-delay rules apply. The
+manifest records `pulse_config_source` and reports the RF group delay as `null`
+because CFG-VALGET has no such item.
+
+- Receiver settings read back: TP1 enabled, 1 s period, 100 ms locked length,
+  unlocked length 0, UTC grid, 50 ns cable delay, TIM-TP enabled on USB.
+  Because the unlocked length is zero, the F9K emits no PPS edge until its time
+  pulse locks. Shortly after the swap it had a 3D fix but invalid leap seconds
+  and no TIM-TP; UHD `test_pps_input` and a 20 s edge monitor saw no PPS.
+  About seven minutes later TIM-TP was flowing and edges were present. RXM-RAWX
+  output is disabled on this receiver, so `--ublox-tcp` live navigation is not
+  ready; `--ublox-time-tcp` and `--check-pps` do not need RAWX.
+- The external reference stayed locked for all 193 samples in 20 s (early
+  reads immediately after init can show unlocked while the PLL settles). A 12 s
+  independent monitor saw 12 edges spaced 1.000000000 s on the X300 clock.
+- No-TX `--check-pps` passed: three edges, `H_ref=2.000000000 s` with GPS
+  `2438:121216.000000000`, planned `H_start=7.000000000 s` with GPS
+  `2438:121221.000000000`. Time base UTC, GPS-minus-UTC 18 s, qErr invalid and
+  unapplied, maximum host-epoch residual 1.421 ms and query width 1.487 ms. SNTP
+  read `+0.002411 +/- 0.125696 s`. Generated/accepted samples were zero and no
+  send was attempted. No receiver configuration was written.
+
 The diagnostic command, manifest, raw UBX/arrival recording and console output
-are in the temporary [validation directory](/var/folders/36/tkc64gps38s9nzp5s6dtqkpw0000gn/T/x300-gps-pps-validation-20260924-ul1pegkt).
+from 24 September are in the temporary [validation directory](/var/folders/36/tkc64gps38s9nzp5s6dtqkpw0000gn/T/x300-gps-pps-validation-20260924-ul1pegkt).
 The OS may eventually remove that directory; the measured results are preserved
 above. The added association module is `player/x300_pps_time.hpp`, integrated
 through `prepareLiveStart()` and the existing sender in `player/x300tx.cpp`.

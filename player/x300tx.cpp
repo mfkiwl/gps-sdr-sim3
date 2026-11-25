@@ -1677,11 +1677,11 @@ static void x300_usage(void) {
       "epoch.\n"
       "  Continuous until interrupted; -P, -d, -n, -A, -J, -G are "
       "incompatible.\n\n"
-      "ZED-F9P time and navigation (raw UBX over TCP):\n"
+      "ZED-F9P/F9K time and navigation (raw UBX over TCP):\n"
       "  --ublox-tcp <host:port>     Estimated live GPS startup, no Trimble\n"
-      "  --ublox-time-tcp <host:port> F9P time with frozen -e; revive "
+      "  --ublox-time-tcp <host:port> F9P/F9K time with frozen -e; revive "
       "TX/stream/dry-run\n"
-      "  --gps-pps                  Associate direct F9P PPS with TIM-TP; "
+      "  --gps-pps                  Associate direct F9P/F9K PPS with TIM-TP; "
       "external 10 MHz\n"
       "  --check-pps                Verify PPS/GPS epoch only; resets local "
       "counter, no RF\n"
@@ -2435,7 +2435,7 @@ int main(int argc, char *argv[]) {
       (gps_week_set || gps_tow_set || scenario_time_set ||
        (matched_options.dry_run && !live.time_only))) {
     if (live.time_only)
-      fprintf(stderr, "ERROR: F9P time-only mode chooses its future GPS epoch; "
+      fprintf(stderr, "ERROR: UBX time-only mode chooses its future GPS epoch; "
                       "do not set -t or --gps-week/--gps-tow.\n");
     else
       fprintf(stderr, "ERROR: live UBX chooses its future GPS epoch; explicit "

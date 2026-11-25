@@ -1,23 +1,56 @@
-# GPS-SDR-SIM
+# gps-sdr-sim (research fork)
 
-GPS-SDR-SIM generates GPS baseband signal data streams, which can be converted
-to RF using software-defined radio (SDR) platforms, such as
-[ADALM-Pluto](https://wiki.analog.com/university/tools/pluto), [bladeRF](http://nuand.com/), [HackRF](https://github.com/mossmann/hackrf/wiki), and [USRP](http://www.ettus.com/).
+A fork of [osqzss/gps-sdr-sim](https://github.com/osqzss/gps-sdr-sim) — a
+software-defined GPS L1 C/A baseband signal simulator — extended with the
+test-signal tooling used by our GNSS spoofing **detection** research.
 
-### Current X300 / F9P / bladeRF work (2026-09-22)
+This fork generates the authentic and spoofed signal scenarios that feed the
+angle-of-arrival (AoA) detector described in the paper:
 
-The X300 player uses ZED-F9P UBX/TCP for estimated live GPS time and navigation,
-with PRS10 10 MHz/PPS hardware timing. `--ublox-time-tcp` combines live F9P time
-with frozen-RINEX revive in offline `--dry-run` only; that combination cannot
-transmit. The bladeRF x40 is the current IQ receiver.
+> **GNSS Spoofing Detection by Estimating Angle of Arrival based on Carrier Phase
+> Double Difference Measurements**, Hiep Hoang Van and Thuan Nguyen Dinh.
 
-Read [command.md](command.md) for concise Hanoi revive command templates.
-See [X300 usage](docs/x300-usage.md),
-[current plan](docs/x300-live-sky-mixtracking-research-plan.md) and
-[latest measured results](docs/x300-f9p-rf-timing-qualification-2026-09-22.md).
-Clock/PPS checks and a five-second bladeRF baseline passed; no X300 RF start or
-absolute GPS alignment has been measured. The present antennas are exposed, so
-GPS transmission remains off until RF containment and input levels are qualified.
+Companion repositories:
+
+- [angle](https://github.com/betty2310/angle) / [gnss-aoa-dd](https://github.com/betty2310/gnss-aoa-dd)
+  — the detector: it consumes two-receiver u-blox logs and estimates each
+  satellite's DD-method AoA to flag spoofing. This fork is only the signal
+  *generator* that produces the test captures.
+
+## Authorized, controlled use
+
+This is defensive security research. The generator writes baseband IQ to a file;
+it transmits nothing by itself. In our experiments the IQ is replayed through an
+SDR only over a **conducted (cabled) RF path or inside a shielded enclosure**, at
+calibrated attenuation, onto receivers the authors own — never over the air onto
+public spectrum. Anyone using this fork is responsible for keeping transmissions
+inside such a controlled environment and within local regulations. Do not use it
+to interfere with receivers or spectrum you do not control.
+
+## What this fork adds over upstream
+
+Beyond upstream's trajectory-plus-ephemeris signal generation:
+
+- Partial-constellation and reference-ephemeris ("revive") modes for building
+  authentic-vs-spoofed scenarios (`revive_candidates`, `matchedgen`).
+- Jammer and matched-code test-signal generators (`jammergen`, `jammertx`) and an
+  IQ mixer (`iqmix`) for combining sources.
+- SDR players and a USRP X300 / ZED-F9P hardware-timing path (`player/`,
+  `x300tx`) with PPS/GPS epoch association.
+
+The X300/F9P live-timing path is experimental and **not** calibrated for absolute
+RF alignment; see [command.md](command.md) and the dated notes under [docs/](docs/)
+for its current, qualified state. For the paper's datasets, the generated IQ is
+replayed in the controlled path described above.
+
+## Build
+
+```bash
+make            # gps-sdr-sim and the test-signal tools (jammergen, matchedgen, iqmix)
+make test       # unit tests
+```
+
+The core simulator alone also builds standalone with GCC (see below).
 
 ### Windows build instructions
 

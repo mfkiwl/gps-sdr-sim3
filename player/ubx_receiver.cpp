@@ -7,6 +7,7 @@
 #include <fcntl.h>
 #include <fstream>
 #include <iomanip>
+#include <map>
 #include <netdb.h>
 #include <poll.h>
 #include <sstream>
@@ -99,6 +100,57 @@ int connectTcp(const std::string &endpoint) {
     return result;
   }
   throw std::runtime_error("cannot connect to UBX TCP endpoint");
+}
+// CFG-TP-* TIMEPULSE0 keys (u-blox F9 interface description), as polled by
+// tools/ubx_tcp_bridge.py --pps.
+enum : uint32_t {
+  TP_CABLE_DELAY = 0x30050001, TP_PERIOD = 0x40050002,
+  TP_PERIOD_LOCK = 0x40050003, TP_LEN = 0x40050004, TP_LEN_LOCK = 0x40050005,
+  TP_USER_DELAY = 0x40050006, TP_ENA = 0x10050007, TP_SYNC_GNSS = 0x10050008,
+  TP_USE_LOCKED = 0x10050009, TP_ALIGN_TOW = 0x1005000a,
+  TP_POLARITY = 0x1005000b, TP_TIMEGRID = 0x2005000c,
+  TP_PULSE_DEF = 0x20050023, TP_FREQ = 0x40050024, TP_FREQ_LOCK = 0x40050025,
+  TP_DUTY = 0x5005002a, TP_DUTY_LOCK = 0x5005002b, TP_LENGTH_DEF = 0x20050030
+};
+using ValgetItems = std::map<uint32_t, const uint8_t *>;
+// Returns false for a partial readback. Throws on values CFG-TP5 cannot hold.
+bool valgetPulseConfig(const ValgetItems &v, double at, PulseConfig &c) {
+  for (uint32_t key :
+       {TP_CABLE_DELAY, TP_PERIOD, TP_PERIOD_LOCK, TP_LEN, TP_LEN_LOCK,
+        TP_USER_DELAY, TP_ENA, TP_SYNC_GNSS, TP_USE_LOCKED, TP_ALIGN_TOW,
+        TP_POLARITY, TP_TIMEGRID, TP_PULSE_DEF, TP_FREQ, TP_FREQ_LOCK, TP_DUTY,
+        TP_DUTY_LOCK, TP_LENGTH_DEF})
+    if (!v.count(key))
+      return false;
+  auto bit = [&](uint32_t key) { return uint32_t(v.at(key)[0] & 1); };
+  const unsigned pulse_def = v.at(TP_PULSE_DEF)[0],
+                 length_def = v.at(TP_LENGTH_DEF)[0],
+                 grid = v.at(TP_TIMEGRID)[0];
+  if (pulse_def > 1 || length_def > 1 || grid > 15)
+    throw std::invalid_argument("CFG-TP enumeration");
+  // CFG-TP5 ratio lengths are duty cycles in units of 2^-32.
+  auto length = [&](uint32_t microseconds, uint32_t percent) -> uint32_t {
+    if (length_def)
+      return u32(v.at(microseconds));
+    double duty = real<double>(v.at(percent));
+    if (!std::isfinite(duty) || duty < 0 || duty > 100)
+      throw std::invalid_argument("CFG-TP duty");
+    return static_cast<uint32_t>(
+        std::min(duty / 100 * 4294967296.0, 4294967295.0));
+  };
+  c = {};
+  c.present = c.from_valget = true;
+  c.flags = bit(TP_ENA) | bit(TP_SYNC_GNSS) << 1 | bit(TP_USE_LOCKED) << 2 |
+            pulse_def << 3 | length_def << 4 | bit(TP_ALIGN_TOW) << 5 |
+            bit(TP_POLARITY) << 6 | grid << 7;
+  c.period = u32(v.at(pulse_def ? TP_FREQ : TP_PERIOD));
+  c.locked_period = u32(v.at(pulse_def ? TP_FREQ_LOCK : TP_PERIOD_LOCK));
+  c.length = length(TP_LEN, TP_DUTY);
+  c.locked_length = length(TP_LEN_LOCK, TP_DUTY_LOCK);
+  c.antenna_delay_ns = i16(v.at(TP_CABLE_DELAY));
+  c.user_delay_ns = i32(v.at(TP_USER_DELAY));
+  c.received = at;
+  return true;
 }
 } // namespace
 
@@ -209,8 +261,30 @@ void Decoder::message(uint8_t cls, uint8_t id, const uint8_t *p, size_t n,
   } else if (cls == 6 && id == 0x31) {
     if (n != 32 || p[1] != 1) { ++state.malformed; return; }
     if (p[0] != 0) return; // TIM-TP describes TIMEPULSE0 only.
-    state.pulse_config = {true, u32(p + 8), u32(p + 12), u32(p + 16),
+    state.pulse_config = {true, false, u32(p + 8), u32(p + 12), u32(p + 16),
         u32(p + 20), i16(p + 4), i16(p + 6), i32(p + 24), u32(p + 28), at};
+  } else if (cls == 5 && id == 0) {
+    if (n != 2) { ++state.malformed; return; }
+    if (p[0] == 6 && p[1] == 0x31) state.tp5_unsupported = true;
+  } else if (cls == 6 && id == 0x8b) {
+    if (n < 4 || p[0] != 1) { ++state.malformed; return; }
+    ValgetItems items;
+    for (size_t j = 4; j < n;) {
+      static const size_t sizes[8] = {0, 1, 1, 2, 4, 8, 0, 0};
+      const size_t size = j + 4 <= n ? sizes[(p[j + 3] >> 4) & 7] : 0;
+      if (!size || j + 4 + size > n) { ++state.malformed; return; }
+      items[u32(p + j)] = p + j + 4;
+      j += 4 + size;
+    }
+    // CFG-TP5 stays authoritative (it also reports RF group delay). Only the
+    // RAM layer replaces it, and only after the receiver NAKs CFG-TP5.
+    if (p[1] != 0 || !state.tp5_unsupported) return;
+    try {
+      PulseConfig config;
+      if (valgetPulseConfig(items, at, config)) state.pulse_config = config;
+    } catch (const std::invalid_argument &) {
+      ++state.malformed;
+    }
   } else if (cls == 1 && id == 0x26) {
     if (n != 24 || p[4] != 0) { ++state.malformed; return; }
     state.leap_info = {true, static_cast<int8_t>(p[9]),
@@ -462,14 +536,18 @@ std::vector<int> observedPrns(const Snapshot &s) {
       result.push_back(prn);
   return result;
 }
+bool supportedIdentity(const std::string &identity) {
+  return identity.find("MOD=ZED-F9P") != std::string::npos ||
+         identity.find("MOD=ZED-F9K") != std::string::npos;
+}
 std::string readiness(const Snapshot &s, double now, gpstime_t epoch,
                       const std::vector<int> &prns, bool need_navigation) {
   if (!s.failure.empty())
     return s.failure;
   if (!s.connected && !s.replay)
     return "UBX TCP is not connected";
-  if (s.identity.find("MOD=ZED-F9P") == std::string::npos)
-    return "waiting for MON-VER ZED-F9P identity";
+  if (!supportedIdentity(s.identity))
+    return "waiting for MON-VER ZED-F9P or ZED-F9K identity";
   if (!s.time.valid || s.times.size() < 3)
     return "need three consecutive valid NAV-TIMEGPS epochs";
   if (now < s.time.received || now - s.time.received > 2.5)
@@ -644,7 +722,9 @@ std::string snapshotJson(const Snapshot &s, double now) {
   }
   out << ",\"pulse_history_size\":" << s.time_pulses.size()
       << ",\"pulse_duplicates\":" << s.pulse_duplicates
+      << ",\"cfg_tp5_unsupported\":" << (s.tp5_unsupported ? "true" : "false")
       << ",\"pulse_config\":{\"present\":" << (s.pulse_config.present ? "true" : "false")
+      << ",\"source\":\"" << (s.pulse_config.from_valget ? "CFG-VALGET" : "CFG-TP5") << '"'
       << ",\"age_s\":" << now - s.pulse_config.received
       << ",\"flags\":" << s.pulse_config.flags
       << ",\"locked_period\":" << s.pulse_config.locked_period

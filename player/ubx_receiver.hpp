@@ -49,8 +49,10 @@ struct TimePulse {
   double received = 0;
   uint64_t sequence = 0;
 };
+// TIMEPULSE0 settings in CFG-TP5 layout. Receivers that NAK CFG-TP5 (ZED-F9K)
+// are read back through CFG-VALGET CFG-TP-*; that path has no RF group delay.
 struct PulseConfig {
-  bool present = false;
+  bool present = false, from_valget = false;
   uint32_t period = 0, locked_period = 0, length = 0, locked_length = 0;
   int antenna_delay_ns = 0, rf_delay_ns = 0, user_delay_ns = 0;
   uint32_t flags = 0;
@@ -93,6 +95,7 @@ struct Snapshot {
   TimePulse time_pulse;
   std::deque<TimePulse> time_pulses;
   uint64_t pulse_duplicates = 0;
+  bool tp5_unsupported = false;
   PulseConfig pulse_config;
   LeapInfo leap_info;
   TimeMark time_mark;
@@ -149,6 +152,8 @@ Snapshot replay(const std::string &path);
 std::string readiness(const Snapshot &s, double now, gpstime_t epoch,
                       const std::vector<int> &prns, bool require_navigation);
 std::vector<int> observedPrns(const Snapshot &s);
+// ZED-F9P or ZED-F9K MON-VER module string; other receivers are not qualified.
+bool supportedIdentity(const std::string &identity);
 std::string snapshotJson(const Snapshot &s, double now);
 
 } // namespace ubx

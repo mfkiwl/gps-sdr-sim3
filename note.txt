@@ -1,0 +1,212 @@
+====
+````
+./x300tx --ublox-time-tcp 127.0.0.1:5019   --gps-pps --pps-host-utc-bound-sec 0.2   --tx-path-delay-sec 0.00000896 --sky-path-delay-sec 0 -e hour2710.26n -l 21.0046121,105.8464833,17.0   -P 18,23,24,32 -S 18:revive,23:revive,24:revive,32:revive   --addr 192.168.10.2 --channel 1 --antenna TX/RX  --clock-source external --time-source external   --rate 2500000 --gain 0 --start-lead-sec 2 --prebuffer 50 --stream
+````
+
+xyz =  -1626595.3,   5730516.7,   2271877.8
+llh =   21.004612,  105.846483,        17.0
+[UBX] Frozen model location 21.004612100,105.846483300,17.000 m; receiver reports 0.029 m/s.
+[UBX] Time reference ready: EXT CORE 1.00 (438518); HW=00190000; ROM BASE 0x118B2060; FWVER=LAPL1L2L5 1.50; PROTVER=30.50; MOD=ZED-F9K; GPS;GLO;GAL;BDS; SBAS;QZSS; NAVIC; target navigation comes from frozen RINEX.
+
+[UHD] Configuring USRP X300 at 192.168.10.2 ...
+[INFO] [UHD] Mac OS; Clang version 21.0.0 (clang-2100.1.1.101); Boost_109200; UHD_4.10.0.0
+[INFO] [X300] X300 initialization sequence...
+[INFO] [X300] Maximum frame size: 1472 bytes.
+[INFO] [X300] Radio 1x clock: 200 MHz
+[SYNC] clock=external time=external; awaiting external PPS
+[UHD] TX channel: 1
+[UHD] TX rate:    2500000 Hz (actual 2500000 Hz)
+[UHD] TX freq:    1575420000 Hz (actual 1575420000 Hz)
+[UHD] TX gain:    0.0 dB (actual 0.0 dB)
+[UHD] TX antenna: TX/RX
+[UHD] Clock src:  external
+[UHD] Time src:   external
+[WARNING] [0/Radio#1] Attempting to set tick rate to 0. Skipping.
+[UHD] Max samples per packet: 364
+[SYNC] PPS time-zero latch and subsequent second verified. GPS alignment is unverified.                                                                               [TIMING] Generator sample rate uses actual TX rate: 2500000.000000 Hz              [TIMING] Epoch sample count: 250000 samples every 100.0 ms                         [GPS-PPS] Verified 3 labeled edges: H_ref=2.000000000 -> GPS 2438:122303.000000000; H_start=7.000000000 -> model 2438:122308.000008960. Host UTC bound assumption 0.200 s; RF path uncalibrated.
+Start time = 2026/09/28,09:58:28.000009 (2438:122308.000008960)                    Duration = streaming until interrupted
+[NAV] All selected PRNs use revive; current-set freshness is not required. Historical templates will be validated.
+Revive PRN 18: template from t-28704s (toe=2438:93600), el=77.2 deg at t_past      Revive PRN 23: template from t-21504s (toe=2438:100800), el=63.9 deg at t_past     Revive PRN 24: template from t-28704s (toe=2438:93600), el=54.8 deg at t_past
+Revive PRN 32: template from t-14304s (toe=2438:108000), el=52.0 deg at t_past     18  203.7  77.2  20156845.6   5.2                                                  23   98.3  63.8  20558305.9   5.5
+24   55.0  54.8  20634431.4   5.9
+32   40.2  52.0  21377468.7   6.2
+Partial constellation mode: rendering only PRNs 18 23 24 32
+[TX] Local PPS start 7.000000000 s maps to model epoch 2438:122308.000008960; GPS alignment unverified.
+S[TX] ERROR: UHD continuity failure: EVENT_CODE_SEQ_ERROR
+[TX] status=failed generated=246999978 accepted=234276550 underflows=0 sequence-errors=1 time-errors=0; manifest=x300tx-ublox-1790589474-89580.json
+
+```
+Co ve ngon, cac ve tinh tracking green all the time, 2 phut
+```
+
+
+
+====
+
+Run 2 
+```
+./x300tx --ublox-time-tcp 127.0.0.1:5019   --gps-pps --pps-host-utc-bound-sec 0.2   --tx-path-delay-sec 0.00000896 --sky-path-delay-sec 0 -e hour2710.26n -l 21.0046121,105.8464833,17.0   -P 10,23,28,32 -S 10:revive,23:revive,28:revive,32:revive   --addr 192.168.10.2 --channel 1 --antenna TX/RX  --clock-source external --time-source external   --rate 2500000 --gain 0 --start-lead-sec 2 --prebuffer 50 --stream
+ xyz =  -1626595.3,   5730516.7,   2271877.8
+llh =   21.004612,  105.846483,        17.0                                        [UBX] Frozen model location 21.004612100,105.846483300,17.000 m; receiver reports 0.010 m/s.                                                                          [UBX] Time reference ready: EXT CORE 1.00 (438518); HW=00190000; ROM BASE 0x118B2060; FWVER=LAPL1L2L5 1.50; PROTVER=30.50; MOD=ZED-F9K; GPS;GLO;GAL;BDS; SBAS;QZSS; NAVIC; target navigation comes from frozen RINEX.
+                                    [UHD] Configuring USRP X300 at 192.168.10.2 ...                                    [INFO] [UHD] Mac OS; Clang version 21.0.0 (clang-2100.1.1.101); Boost_109200; UHD_4.10.0.0
+[INFO] [X300] X300 initialization sequence...
+[INFO] [X300] Maximum frame size: 1472 bytes.                                      [INFO] [X300] Radio 1x clock: 200 MHz
+[SYNC] clock=external time=external; awaiting external PPS
+[UHD] TX channel: 1
+[UHD] TX rate:    2500000 Hz (actual 2500000 Hz)
+[UHD] TX freq:    1575420000 Hz (actual 1575420000 Hz)
+[UHD] TX gain:    0.0 dB (actual 0.0 dB)
+[UHD] TX antenna: TX/RX
+[UHD] Clock src:  external
+[UHD] Time src:   external                                                         [WARNING] [0/Radio#1] Attempting to set tick rate to 0. Skipping.
+[UHD] Max samples per packet: 364                                                  [SYNC] PPS time-zero latch and subsequent second verified. GPS alignment is unverified.                                                                               [TIMING] Generator sample rate uses actual TX rate: 2500000.000000 Hz              [TIMING] Epoch sample count: 250000 samples every 100.0 ms
+[GPS-PPS] Verified 3 labeled edges: H_ref=2.000000000 -> GPS 2438:122770.000000000; H_start=7.000000000 -> model 2438:122775.000008960. Host UTC bound assumption 0.200 s; RF path uncalibrated.                                                         Start time = 2026/09/28,10:06:15.000009 (2438:122775.000008960)                    Duration = streaming until interrupted                                             [NAV] All selected PRNs use revive; current-set freshness is not required. Historical templates will be validated.
+Revive PRN 10: template from t-14768s (toe=2438:108000), el=49.9 deg at t_past     Revive PRN 23: template from t-21968s (toe=2438:100800), el=63.9 deg at t_past     Revive PRN 28: template from t-14768s (toe=2438:108000), el=54.2 deg at t_past     Revive PRN 32: template from t-14768s (toe=2438:108000), el=52.0 deg at t_past     10  161.2  49.9  21120980.2   6.3
+23   98.4  63.8  20558631.2   5.4                                                  28  349.2  54.2  21129378.9   6.0                                                  32   40.3  52.0  21377227.1   6.1                                                  Partial constellation mode: rendering only PRNs 10 23 28 32                        [TX] Local PPS start 7.000000000 s maps to model epoch 2438:122775.000008960; GPS alignment unverified.                                                               S[TX] ERROR: UHD continuity failure: EVENT_CODE_SEQ_ERROR
+[TX] status=failed generated=66999978 accepted=54268178 underflows=0 sequence-errors=1 time-errors=0; manifest=x300tx-ublox-1790589943-92106.json
+
+ gps-sdr-sim on  master [!?] via  v17.0.0-clang via  v3.13.13 took 36s
+ ❯ ./x300tx --ublox-time-tcp 127.0.0.1:5019   --gps-pps --pps-host-utc-bound-sec 0.2   --tx-path-delay-sec 0.00000896 --sky-path-delay-sec 0 -e hour2710.26n -l 21.0046121,105.8464833,17.0   -P 10,23,28,32 -S 10:revive,23:revive,28:revive,32:revive   --addr 192.168.10.2 --channel 1 --antenna TX/RX  --clock-source external --time-source external   --rate 2500000 --gain 0 --start-lead-sec 2 --prebuffer 50 --stream
+xyz =  -1626595.3,   5730516.7,   2271877.8
+llh =   21.004612,  105.846483,        17.0
+[UBX] Frozen model location 21.004612100,105.846483300,17.000 m; receiver reports 0.013 m/s.                                                                          [UBX] Time reference ready: EXT CORE 1.00 (438518); HW=00190000; ROM BASE 0x118B2060; FWVER=LAPL1L2L5 1.50; PROTVER=30.50; MOD=ZED-F9K; GPS;GLO;GAL;BDS; SBAS;QZSS; NAVIC; target navigation comes from frozen RINEX.
+
+[UHD] Configuring USRP X300 at 192.168.10.2 ...
+[INFO] [UHD] Mac OS; Clang version 21.0.0 (clang-2100.1.1.101); Boost_109200; UHD_4.10.0.0
+[INFO] [X300] X300 initialization sequence...                                      [INFO] [X300] Maximum frame size: 1472 bytes.                                      [INFO] [X300] Radio 1x clock: 200 MHz
+[SYNC] clock=external time=external; awaiting external PPS
+[UHD] TX channel: 1
+[UHD] TX rate:    2500000 Hz (actual 2500000 Hz)                                   [UHD] TX freq:    1575420000 Hz (actual 1575420000 Hz)
+[UHD] TX gain:    0.0 dB (actual 0.0 dB)
+[UHD] TX antenna: TX/RX
+[UHD] Clock src:  external
+[UHD] Time src:   external
+[WARNING] [0/Radio#1] Attempting to set tick rate to 0. Skipping.
+[UHD] Max samples per packet: 364
+[SYNC] PPS time-zero latch and subsequent second verified. GPS alignment is unverified.
+[TIMING] Generator sample rate uses actual TX rate: 2500000.000000 Hz
+[TIMING] Epoch sample count: 250000 samples every 100.0 ms
+[GPS-PPS] Verified 3 labeled edges: H_ref=2.000000000 -> GPS 2438:122809.000000000; H_start=7.000000000 -> model 2438:122814.000008960. Host UTC bound assumption 0.200 s; RF path uncalibrated.
+Start time = 2026/09/28,10:06:54.000009 (2438:122814.000008960)
+Duration = streaming until interrupted                                             [NAV] All selected PRNs use revive; current-set freshness is not required. Historical templates will be validated.
+Revive PRN 10: template from t-14800s (toe=2438:108000), el=49.9 deg at t_past
+Revive PRN 23: template from t-22000s (toe=2438:100800), el=63.9 deg at t_past
+Revive PRN 28: template from t-14800s (toe=2438:108000), el=54.2 deg at t_past
+Revive PRN 32: template from t-14800s (toe=2438:108000), el=52.0 deg at t_past
+10  161.3  49.8  21124255.6   6.3
+23   98.5  63.8  20559393.9   5.4
+28  349.3  54.1  21130782.8   6.0
+32   40.4  52.0  21376664.6   6.1
+Partial constellation mode: rendering only PRNs 10 23 28 32
+[TX] Local PPS start 7.000000000 s maps to model epoch 2438:122814.000008960; GPS alignment unverified.                                                               S[TX] ERROR: UHD continuity failure: EVENT_CODE_SEQ_ERROR                          [TX] status=failed generated=406999978 accepted=394273638 underflows=0 sequence-errors=1 time-errors=0; manifest=x300tx-ublox-1790589983-92218.json
+```
+
+cold start 1 lan o giua
+
+
+====
+
+goc 30 do cach 1m
+
+```
+ gps-sdr-sim on  master [!?] via  v17.0.0-clang via  v3.13.13
+ ❯ ./x300tx --ublox-time-tcp 127.0.0.1:5019   --gps-pps --pps-host-utc-bound-sec 0.2   --tx-path-delay-sec 0.00000896 --sky-path-delay-sec 0 -e hour2710.26n -l 21.0046121,105.8464833,17.0   -P 10,23,28,32 -S 10:revive,23:revive,28:revive,32:revive   --addr 192.168.10.2 --channel 1 --antenna TX/RX  --clock-source external --time-source external   --rate 2500000 --gain 0 --start-lead-sec 2 --prebuffer 50 --stream
+
+ gps-sdr-sim on  master [!?] via  v17.0.0-clang via  v3.13.13
+ ❯ vi note.txt
+
+ gps-sdr-sim on  master [!?] via  v17.0.0-clang via  v3.13.13 took 7m29s
+ ❯ ./x300tx --ublox-time-tcp 127.0.0.1:5019   --gps-pps --pps-host-utc-bound-sec 0.2   --tx-path-delay-sec 0.00000896 --sky-path-delay-sec 0 -e hour2710.26n -l 21.0046121,105.8464833,17.0   -P 10,23,28,32 -S 10:revive,23:revive,28:revive,32:revive   --addr 192.168.10.2 --channel 1 --antenna TX/RX  --clock-source external --time-source external   --rate 2500000 --gain 0 --start-lead-sec 2 --prebuffer 50 --stream
+xyz =  -1626595.3,   5730516.7,   2271877.8
+llh =   21.004612,  105.846483,        17.0
+[UBX] Frozen model location 21.004612100,105.846483300,17.000 m; receiver reports 0.064 m/s.
+[UBX] Time reference ready: EXT CORE 1.00 (438518); HW=00190000; ROM BASE 0x118B2060; FWVER=LAPL1L2L5 1.50; PROTVER=30.50; MOD=ZED-F9K; GPS;GLO;GAL;BDS; SBAS;QZSS; NAVIC; target navigation comes from frozen RINEX.
+
+[UHD] Configuring USRP X300 at 192.168.10.2 ...
+[INFO] [UHD] Mac OS; Clang version 21.0.0 (clang-2100.1.1.101); Boost_109200; UHD_4.10.0.0
+[INFO] [X300] X300 initialization sequence...
+[INFO] [X300] Maximum frame size: 1472 bytes.
+[INFO] [X300] Radio 1x clock: 200 MHz
+[SYNC] clock=external time=external; awaiting external PPS
+[UHD] TX channel: 1
+[UHD] TX rate:    2500000 Hz (actual 2500000 Hz)
+[UHD] TX freq:    1575420000 Hz (actual 1575420000 Hz)
+[UHD] TX gain:    0.0 dB (actual 0.0 dB)
+[UHD] TX antenna: TX/RX
+[UHD] Clock src:  external
+[UHD] Time src:   external
+[WARNING] [0/Radio#1] Attempting to set tick rate to 0. Skipping.
+[UHD] Max samples per packet: 364
+[SYNC] PPS time-zero latch and subsequent second verified. GPS alignment is unverified.
+[TIMING] Generator sample rate uses actual TX rate: 2500000.000000 Hz
+[TIMING] Epoch sample count: 250000 samples every 100.0 ms
+[GPS-PPS] Verified 3 labeled edges: H_ref=2.000000000 -> GPS 2438:123679.000000000; H_start=7.000000000 -> model 2438:123684.000008960. Host UTC bound assumption 0.200 s; RF path uncalibrated.
+Start time = 2026/09/28,10:21:24.000009 (2438:123684.000008960)
+Duration = streaming until interrupted
+[NAV] All selected PRNs use revive; current-set freshness is not required. Historical templates will be validated.
+Revive PRN 10: template from t-15680s (toe=2438:108000), el=49.9 deg at t_past
+Revive PRN 23: template from t-22880s (toe=2438:100800), el=63.9 deg at t_past
+Revive PRN 28: template from t-15680s (toe=2438:108000), el=54.2 deg at t_past
+Revive PRN 32: template from t-15680s (toe=2438:108000), el=52.0 deg at t_past
+10  161.2  49.9  21119578.0   6.1
+23   98.3  63.8  20558305.9   5.2
+28  349.2  54.2  21128777.7   5.8
+32   40.2  52.0  21377468.7   5.9
+Partial constellation mode: rendering only PRNs 10 23 28 32
+[TX] Local PPS start 7.000000000 s maps to model epoch 2438:123684.000008960; GPS alignment unverified.
+S[TX] ERROR: UHD continuity failure: EVENT_CODE_SEQ_ERROR
+[TX] status=failed generated=421999978 accepted=409265630 underflows=0 sequence-errors=1 time-errors=0; manifest=x300tx-ublox-1790590852-96677.json
+
+ gps-sdr-sim on  master [!?] via  v17.0.0-clang via  v3.13.13 took 2m58s
+ ❯ ./x300tx --ublox-time-tcp 127.0.0.1:5019   --gps-pps --pps-host-utc-bound-sec 0.2   --tx-path-delay-sec 0.00000896 --sky-path-delay-sec 0 -e hour2710.26n -l 21.0046121,105.8464833,17.0   -P 10,23,28,32 -S 10:revive,23:revive,28:revive,32:revive   --addr 192.168.10.2 --channel 1 --antenna TX/RX  --clock-source external --time-source external   --rate 2500000 --gain 0 --start-lead-sec 2 --prebuffer 50 --stream
+xyz =  -1626595.3,   5730516.7,   2271877.8
+llh =   21.004612,  105.846483,        17.0
+[UBX] Frozen model location 21.004612100,105.846483300,17.000 m; receiver reports 0.030 m/s.
+[UBX] Time reference ready: EXT CORE 1.00 (438518); HW=00190000; ROM BASE 0x118B2060; FWVER=LAPL1L2L5 1.50; PROTVER=30.50; MOD=ZED-F9K; GPS;GLO;GAL;BDS; SBAS;QZSS; NAVIC; target navigation comes from frozen RINEX.
+
+[UHD] Configuring USRP X300 at 192.168.10.2 ...
+[INFO] [UHD] Mac OS; Clang version 21.0.0 (clang-2100.1.1.101); Boost_109200; UHD_4.10.0.0
+[INFO] [X300] X300 initialization sequence...
+[INFO] [X300] Maximum frame size: 1472 bytes.
+[INFO] [X300] Radio 1x clock: 200 MHz
+[SYNC] clock=external time=external; awaiting external PPS
+[UHD] TX channel: 1
+[UHD] TX rate:    2500000 Hz (actual 2500000 Hz)
+[UHD] TX freq:    1575420000 Hz (actual 1575420000 Hz)
+[UHD] TX gain:    0.0 dB (actual 0.0 dB)
+[UHD] TX antenna: TX/RX
+[UHD] Clock src:  external
+[UHD] Time src:   external
+[WARNING] [0/Radio#1] Attempting to set tick rate to 0. Skipping.
+[UHD] Max samples per packet: 364
+[SYNC] PPS time-zero latch and subsequent second verified. GPS alignment is unverified.
+[TIMING] Generator sample rate uses actual TX rate: 2500000.000000 Hz
+[TIMING] Epoch sample count: 250000 samples every 100.0 ms
+[GPS-PPS] Verified 3 labeled edges: H_ref=2.000000000 -> GPS 2438:123866.000000000; H_start=7.000000000 -> model 2438:123871.000008960. Host UTC bound assumption 0.200 s; RF path uncalibrated.
+Start time = 2026/09/28,10:24:31.000009 (2438:123871.000008960)
+Duration = streaming until interrupted
+[NAV] All selected PRNs use revive; current-set freshness is not required. Historical templates will be validated.
+Revive PRN 10: template from t-15856s (toe=2438:108000), el=49.9 deg at t_past
+Revive PRN 23: template from t-23056s (toe=2438:100800), el=63.9 deg at t_past
+Revive PRN 28: template from t-15856s (toe=2438:108000), el=54.2 deg at t_past
+Revive PRN 32: template from t-15856s (toe=2438:108000), el=52.0 deg at t_past
+10  161.3  49.8  21124723.9   6.1
+23   98.6  63.8  20559503.3   5.2
+28  349.3  54.1  21130983.5   5.8
+32   40.4  52.0  21376584.3   5.8
+Partial constellation mode: rendering only PRNs 10 23 28 32
+[TX] Local PPS start 7.000000000 s maps to model epoch 2438:123871.000008960; GPS alignment unverified.
+S[TX] ERROR: UHD continuity failure: EVENT_CODE_SEQ_ERROR
+[TX] status=failed generated=391999978 accepted=379273638 underflows=0 sequence-errors=1 time-errors=0; manifest=x300tx-ublox-1790591039-97391.json
+```
+
+
+co coldstart in mid
+
+====
+
+goc 90 do cach 3m
+
+```
+same command
+```
